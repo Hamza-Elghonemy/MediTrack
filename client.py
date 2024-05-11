@@ -109,7 +109,7 @@ class MainWindow(QMainWindow):
             # Choose a random signal from the list
             if self.signals:
                 random_signal = random.choice(self.signals)
-                max_peak = max(random_signal, key=float)
+                max_peak = max(random_signal, key=int)
                 return max_peak    
             else:
                 return 0
@@ -118,7 +118,8 @@ class MainWindow(QMainWindow):
             return 0    
 
     def register_user(self):
-        self.user_id = str(uuid.uuid4())
+        self.user_id = int(uuid.uuid4())
+        id = self.user_id
         username = self.current_layout.textEdit_4.toPlainText()
         email = self.current_layout.textEdit_3.toPlainText()
         age = self.current_layout.ageText.toPlainText()
@@ -138,14 +139,15 @@ class MainWindow(QMainWindow):
             msg.setWindowTitle("Warning")
             msg.exec_()
             return
+        vitalsign =  random.randint(60, 100) 
 
         user_data = {
-            'id' : self.user_id,
+            'user_id' : id,
             'username': username,
             'email': email,
             'age': age,
             'gender': gender,
-            'Vital-sign' : self.choose_random_signal,
+            'vitalSign' : vitalsign,
             'password': password
         }
         # Encode data
@@ -164,6 +166,7 @@ class MainWindow(QMainWindow):
         
         self.setupUi(layout_name)
         self.adjustSize()
+        
     def user_login(self):
         username = self.current_layout.textEdit_4.toPlainText()
         password = self.current_layout.textEdit_2.toPlainText()
