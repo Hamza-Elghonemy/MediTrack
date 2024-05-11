@@ -2,7 +2,7 @@ import redis
 import json
 import socket
 import numpy as np
-
+ 
 
 redis_host='redis-17832.c281.us-east-1-2.ec2.redns.redis-cloud.com'
 redis_port = 17832
