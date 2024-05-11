@@ -11,11 +11,11 @@ import json
 from PyQt5.QtWidgets import QMessageBox
 
 
-HOST = 'localhost'
-PORT = 5000
-#Connect to server
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((HOST, PORT))
+# HOST = 'localhost'
+# PORT = 5000
+# #Connect to server
+# client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# client_socket.connect((HOST, PORT))
 
 emg_signals = [r'Datasets\EMG\emg_healthy.dat',r'Datasets\EMG\emg_myopathy.dat',r'Datasets\EMG\emg_neuropathy.dat']
 emg_data = []
@@ -24,18 +24,18 @@ for emg in emg_signals:
     emg_data.append(np.fromfile(emg, dtype=int) / 10000000)
     peaks.append(len(find_peaks(emg_data[-1], height=0)[0]))
 
-def client_program():
-    host = 'localhost'  # as both code is running on same pc
-    port = 5000  # socket server port number
+# def client_program():
+#     host = 'localhost'  # as both code is running on same pc
+#     port = 5000  # socket server port number
 
-    client_socket = socket.socket()  # instantiate
-    client_socket.connect((host, port))  # connect to the server
+#     client_socket = socket.socket()  # instantiate
+#     client_socket.connect((host, port))  # connect to the server
 
-    data = input(' -> ')
-    client_socket.send(data.encode())  # send data to the server
-    data = client_socket.recv(1024).decode()  # receive response
+#     data = input(' -> ')
+#     client_socket.send(data.encode())  # send data to the server
+#     data = client_socket.recv(1024).decode()  # receive response
 
-    print('Received from server: ' + data)  # show response
+#     print('Received from server: ' + data)  # show response
 
 
 class MainWindow(QMainWindow):
@@ -56,30 +56,35 @@ class MainWindow(QMainWindow):
         self.current_layout.setupUi(self)
         if layout_name == "signup":
             self.current_layout.loginButton.clicked.connect(lambda: self.switch_layout("login"))
-            if (self.current_layout.signupButton.clicked.connect(self.register_user)):
-                self.current_layout.signupButton.clicked.connect(lambda: self.switch_layout("Doctor"))
+            self.current_layout.signupButton.clicked.connect(self.register_user)
         elif layout_name == "login":
             self.current_layout.pushButton.clicked.connect(lambda: self.switch_layout("signup"))
             self.current_layout.Login_button.clicked.connect(lambda: self.switch_layout("Doctor"))
         elif layout_name == "Doctor":
             self.current_layout.logoutButton.clicked.connect(lambda: self.switch_layout("login"))
+            
 
-    def register_user(self, name= None, email= None, age= None, gender= None, password= None):
+    def register_user(self):
         
-        username = self.current_layout.textEdit_4.text()
-        email = self.current_layout.textEdit_5.text()
-        age = self.current_layout.textEdit_6.text()
-        gender = self.current_layout.textEdit_7.text()
-        password = self.current_layout.textEdit_8.text()
+        username = self.current_layout.textEdit_4.toPlainText()
+        email = self.current_layout.textEdit_3.toPlainText()
+        age = self.current_layout.ageText.toPlainText()
+        gender =None
+        if self.current_layout.radioButton_2.isChecked():
+            gender = "Male"
+        elif self.current_layout.radioButton_3.isChecked():
+            gender = "Female"
+        password = self.current_layout.textEdit_2.toPlainText()
+        confirm = self.current_layout.textEdit.toPlainText()
 
         # Check if all required fields are filled
-        if not all([username, email, age, gender, password]):
+        if not all([username, email, age, gender, password, confirm]):
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Warning)
             msg.setText("Please fill in all the required fields.")
             msg.setWindowTitle("Warning")
             msg.exec_()
-            return False
+            return
 
         user_data = {
             'username': username,
@@ -89,10 +94,13 @@ class MainWindow(QMainWindow):
             'password': password
         }
         # Encode data
-        encoded_data = json.dumps(user_data).encode()
+        #TODO: hamza check sending json file to the server
+        
+        #encoded_data = json.dumps(user_data).encode()
         # Send data to server
-        client_socket.sendall(encoded_data)
-        return True 
+        #client_socket.sendall(encoded_data)
+        
+        self.current_layout.signupButton.clicked.connect(lambda: self.switch_layout("Doctor"))
        
     def switch_layout(self, layout_name):
         # Clear existing layout
@@ -110,5 +118,5 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
-    client_program()
+    #client_program()
     sys.exit(app.exec_())
