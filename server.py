@@ -91,11 +91,24 @@ def server_program():
             break
         print("from connected user: " + str(data))
 
-        # Store the data in Redis
-        r.set('client_data', data)
+        # Decode the JSON string into a Python dictionary
+        user_data = json.loads(data)
 
-        data = input(' -> ')
-        conn.send(data.encode())  # send data to the client
+        # Retrieve the data from the Redis hashmap
+        existing_data = r.hgetall('patients')
+
+        # Decode the existing data
+        existing_data = {k.decode(): v.decode() for k, v in existing_data.items()}
+
+        # Check if the received data already exists in the Redis database
+        if user_data == existing_data:
+            print("Data already exists in the Redis database.")
+        else:
+            # Store the data in the Redis hashmap
+            r.hmset('patients', user_data)
+
+        server_data = "recieved"
+        conn.send(server_data.encode())  # send data to the client
         
 if __name__ == '__main__':
     server_program()
