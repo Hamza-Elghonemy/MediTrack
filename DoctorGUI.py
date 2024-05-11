@@ -72,7 +72,7 @@ class Ui_MainWindow(object):
 "color:#2596be;\n"
 "}\n"
 "\n"
-"#SearchFrame, #accountButton, #menuButton, #profileButton, #logoutButton{\n"
+"#SearchFrame, #accountButton, #menuButton, #profileButton, #logoutButton,#lineEdit_3{\n"
 "border-radius: 10px;\n"
 "border: 2px solid #2596be;\n"
 "}")
@@ -406,7 +406,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_8.addWidget(self.comboBox)
         self.lineEdit_3 = QtWidgets.QLineEdit(self.frame_11)
         self.lineEdit_3.setMinimumSize(QtCore.QSize(44, 30))
-        self.lineEdit_3.setMaximumSize(QtCore.QSize(44, 30))
+        self.lineEdit_3.setMaximumSize(QtCore.QSize(100, 30))
         font = QtGui.QFont()
         font.setPointSize(13)
         font.setBold(True)
