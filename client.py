@@ -4,12 +4,14 @@ from PyQt5.QtCore import QTimer
 from login import *
 from signup import *
 from DoctorGUI import *
-from socket import *
+import socket 
 import numpy as np
 from scipy.signal import find_peaks
+import json
+from PyQt5.QtWidgets import QMessageBox
 
 
-HOST = '127.0.0.1'
+HOST = 'localhost'
 PORT = 5000
 #Connect to server
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -54,13 +56,43 @@ class MainWindow(QMainWindow):
         self.current_layout.setupUi(self)
         if layout_name == "signup":
             self.current_layout.loginButton.clicked.connect(lambda: self.switch_layout("login"))
-            self.current_layout.signupButton.clicked.connect(lambda: self.switch_layout("Doctor"))
+            if (self.current_layout.signupButton.clicked.connect(self.register_user)):
+                self.current_layout.signupButton.clicked.connect(lambda: self.switch_layout("Doctor"))
         elif layout_name == "login":
             self.current_layout.pushButton.clicked.connect(lambda: self.switch_layout("signup"))
             self.current_layout.Login_button.clicked.connect(lambda: self.switch_layout("Doctor"))
         elif layout_name == "Doctor":
             self.current_layout.logoutButton.clicked.connect(lambda: self.switch_layout("login"))
 
+    def register_user(self, name= None, email= None, age= None, gender= None, password= None):
+        
+        username = self.current_layout.textEdit_4.text()
+        email = self.current_layout.textEdit_5.text()
+        age = self.current_layout.textEdit_6.text()
+        gender = self.current_layout.textEdit_7.text()
+        password = self.current_layout.textEdit_8.text()
+
+        # Check if all required fields are filled
+        if not all([username, email, age, gender, password]):
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("Please fill in all the required fields.")
+            msg.setWindowTitle("Warning")
+            msg.exec_()
+            return False
+
+        user_data = {
+            'username': username,
+            'email': email,
+            'age': age,
+            'gender': gender,
+            'password': password
+        }
+        # Encode data
+        encoded_data = json.dumps(user_data).encode()
+        # Send data to server
+        client_socket.sendall(encoded_data)
+        return True 
        
     def switch_layout(self, layout_name):
         # Clear existing layout
@@ -70,6 +102,9 @@ class MainWindow(QMainWindow):
         
         self.setupUi(layout_name)
         self.adjustSize()
+        
+   
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
