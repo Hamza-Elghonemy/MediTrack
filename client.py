@@ -43,7 +43,15 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.current_layout = None
         self.setupUi("signup")
-        
+        # Create a socket object
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Define the server address and port
+        HOST = 'localhost'
+        PORT = 5000
+
+        # Connect to the server
+        self.client_socket.connect((HOST, PORT))
 
     def setupUi(self, layout_name):
         if layout_name == "signup":
@@ -95,12 +103,30 @@ class MainWindow(QMainWindow):
         }
         # Encode data
         #TODO: hamza check sending json file to the server
-        
-        #encoded_data = json.dumps(user_data).encode()
+        encoded_data = json.dumps(user_data).encode()
+
         # Send data to server
-        #client_socket.sendall(encoded_data)
+        self.client_socket.sendall(encoded_data)
+
         
         self.current_layout.signupButton.clicked.connect(lambda: self.switch_layout("Doctor"))
+    
+    def user_login(self):
+        username = self.current_layout.textEdit_4.toPlainText()
+        password = self.current_layout.textEdit_2.toPlainText()
+        user_data = {
+            'username': username,
+            'password': password
+        }
+        # Encode data
+        encoded_data = json.dumps(user_data).encode()
+
+        # Send data to server
+        self.client_socket.sendall(encoded_data)
+
+        # Receive data from the server
+        data = self.client_socket.recv(1024).decode()
+        print('Received from server: ' + data)
        
     def switch_layout(self, layout_name):
         # Clear existing layout
