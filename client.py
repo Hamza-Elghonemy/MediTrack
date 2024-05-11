@@ -74,6 +74,7 @@ class MainWindow(QMainWindow):
         elif layout_name == "login":
             self.current_layout.pushButton.clicked.connect(lambda: self.switch_layout("signup"))
             self.current_layout.Login_button.clicked.connect(lambda: self.switch_layout("Doctor"))
+            self.current_layout.Login_button.clicked.connect(self.user_login)
         elif layout_name == "Doctor":
             self.current_layout.logoutButton.clicked.connect(lambda: self.switch_layout("login"))
             
@@ -168,7 +169,7 @@ class MainWindow(QMainWindow):
         self.adjustSize()
         
     def user_login(self):
-        username = self.current_layout.textEdit_4.toPlainText()
+        username = self.current_layout.textEdit_3.toPlainText()
         password = self.current_layout.textEdit_2.toPlainText()
         user_data = {
             'username': username,
