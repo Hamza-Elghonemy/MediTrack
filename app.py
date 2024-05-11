@@ -23,8 +23,8 @@ class MainWindow(QMainWindow):
 
         self.current_layout.setupUi(self)
         if layout_name == "signup":
-            self.current_layout.pushButton.clicked.connect(lambda: self.switch_layout("login"))
-            self.current_layout.signup.clicked.connect(lambda: self.switch_layout("Doctor"))
+            self.current_layout.loginButton.clicked.connect(lambda: self.switch_layout("login"))
+            self.current_layout.signupButton.clicked.connect(lambda: self.switch_layout("Doctor"))
         elif layout_name == "login":
             self.current_layout.pushButton.clicked.connect(lambda: self.switch_layout("signup"))
             self.current_layout.Login_button.clicked.connect(lambda: self.switch_layout("Doctor"))
