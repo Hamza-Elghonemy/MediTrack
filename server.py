@@ -36,8 +36,9 @@ def server_program():
 
     server_socket = socket.socket()  # get instance
     server_socket.bind((host, port))  # bind host address and port together
+    server_socket.listen(4)
     while True:
-        server_socket.listen(4)
+        
         conn, address = server_socket.accept()  # accept new connection 
         data = conn.recv(1024).decode()
         user_data = json.loads(data)

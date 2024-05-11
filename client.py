@@ -206,27 +206,31 @@ class MainWindow(QMainWindow):
         self.current_layout.Login_button.clicked.connect(lambda: self.switch_layout("Doctor"))
            
     def send_data(self):
-            # Create a socket connection
-            vital_sign = random.randint(60, 100)
-            self.Y_Coordinates.append(vital_sign)
-            self.X_Coordinates = list(np.arange(len(self.Y_Coordinates)))
-            self.pointPlotted += 1
-            self.current_layout.graphicsView.setLimits(xMin=0, xMax=float('inf'))
+    # Create a new socket connection
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client_socket.connect((self.HOST, self.PORT))
+
+        vital_sign = random.randint(60, 100)
+        self.Y_Coordinates.append(vital_sign)
+        self.X_Coordinates = list(np.arange(len(self.Y_Coordinates)))
+        self.pointPlotted += 1
+        self.current_layout.graphicsView.setLimits(xMin=0, xMax=float('inf'))
+        
+        self.data_line.setData(self.X_Coordinates[0 : self.pointPlotted + 1], self.Y_Coordinates[0 : self.pointPlotted + 1])  # Update the data.
+        self.current_layout.graphicsView.getViewBox().setXRange(max(self.X_Coordinates[0: self.pointPlotted + 1]) - 1000, max(self.X_Coordinates[0: self.pointPlotted + 1]))
+        
+        try:
+            update_sign = {
+                'username': self.username,
+                'vitalSign' : vital_sign  
+            }
             
-            self.data_line.setData(self.X_Coordinates[0 : self.pointPlotted + 1], self.Y_Coordinates[0 : self.pointPlotted + 1])  # Update the data.
-            self.current_layout.graphicsView.getViewBox().setXRange(max(self.X_Coordinates[0: self.pointPlotted + 1]) - 1000, max(self.X_Coordinates[0: self.pointPlotted + 1]))
-            
-            try:
-                update_sign = {
-                    'username': self.username,
-                    'vitalSign' : vital_sign  
-                }
-                
-                serialized_data = json.dumps(update_sign)
-                self.client_socket.sendall(serialized_data.encode())
-                print("Data sent successfully")
-            except Exception as e:
-                print(f"Failed to send data: {e}")
+            serialized_data = json.dumps(update_sign)
+            self.client_socket.sendall(serialized_data.encode())
+            print("Data sent successfully")
+            self.client_socket.close()  # Close the connection after sending data
+        except Exception as e:
+            print(f"Failed to send data: {e}")
 
             
 
