@@ -1,4 +1,13 @@
 import socket
+import numpy as np
+from scipy.signal import find_peaks
+
+emg_signals = [r'Datasets\EMG\emg_healthy.dat',r'Datasets\EMG\emg_myopathy.dat',r'Datasets\EMG\emg_neuropathy.dat']
+emg_data = []
+peaks = []
+for emg in emg_signals:
+    emg_data.append(np.fromfile(emg, dtype=int) / 10000000)
+    peaks.append(len(find_peaks(emg_data[-1], height=0)[0]))
 
 def client_program():
     host = 'localhost'  # as both code is running on same pc
