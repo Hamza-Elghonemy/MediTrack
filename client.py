@@ -154,7 +154,9 @@ class MainWindow(QMainWindow):
         client_socket.sendall(encoded_data)
         
         self.current_layout.signupButton.clicked.connect(lambda: self.switch_layout("Doctor"))
+        self.timer.setInterval(5000)
         self.timer.timeout.connect(self.send_data)
+        self.timer.start
        
     def switch_layout(self, layout_name):
         # Clear existing layout
@@ -195,9 +197,10 @@ class MainWindow(QMainWindow):
     def send_data(self):
         self.connect_to_server()
         vital_sign = random.randint(60, 100)
+        username = self.current_layout.textEdit_4.toPlainText()
         try:
             update_sign = {
-                'id' : self.user_id,
+                'username': username,
                 'vitalSign' : vital_sign  
             }
             serialized_data = json.dumps(update_sign)

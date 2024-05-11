@@ -99,14 +99,37 @@ def server_program():
 
         # Decode the existing data
         existing_data = {k.decode(): v.decode() for k, v in existing_data.items()}
+        if 'age' not in user_data:
+            # Extract the id from the received data
+            u_name = user_data['username']
+            # Check if a patient with this id exists in the Redis database
+            existing_data = r.hgetall(f"patient:{u_name}")
 
-        # Check if the received data already exists in the Redis database
-        if user_data == existing_data:
-            print("Data already exists in the Redis database.")
+            if existing_data:
+            # Decode the existing data
+                existing_data = {k.decode(): v.decode() for k, v in existing_data.items()}
+                for key, value in user_data.items():
+                    r.hset(f"patient:{u_name}", key, value)
+            # Update the patient's data with the received data
+                print(f"Updated data for patient with id {u_name}.")
+            else:
+                print(f"No patient found with id {u_name}.")
+           
         else:
+            if user_data == existing_data:
+                print("Data already exists in the Redis database.")
+            else:
             # Store the data in the Redis hashmap
-            r.hmset('patients', user_data)
+                for key,value in user_data.items():
+                    r.hset('patients', key, value)
+                print("Data stored in the Redis database.")
 
+
+                
+        # Check if the received data already exists in the Redis database
+        
+        
+        
         server_data = "recieved"
         conn.send(server_data.encode())  # send data to the client
         
