@@ -50,6 +50,8 @@ class MainWindow(QMainWindow):
         self.X_Coordinates= []
         self.Y_Coordinates =[]
         self.pointPlotted = 0
+        
+        self.currentid = 1
         self.timer = QTimer()
          # Create a socket object
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -152,6 +154,7 @@ class MainWindow(QMainWindow):
             'vitalSign' : vitalsign,
             'password': password
         }
+        self.currentid+= 1
         self.Y_Coordinates.append(vitalsign)
         self.X_Coordinates = list(np.arange(len(self.Y_Coordinates)))
         
@@ -159,12 +162,13 @@ class MainWindow(QMainWindow):
         encoded_data = json.dumps(user_data).encode()
         # Send data to server
         client_socket.sendall(encoded_data)
+
         
-        self.current_layout.signupButton.clicked.connect(lambda: self.switch_layout("Doctor"))
-        self.timer.setInterval(5000)
+        self.switch_layout("Doctor")
+        self.timer.setInterval(500)
         self.timer.timeout.connect(self.send_data)
         self.timer.start()
-        self.data_line =self.current_layout.graphicsView.plot(self.X_Coordinates[:1], self.Y_Coordinates[:1], pen= "red")
+        self.data_line = self.current_layout.graphicsView.plot(self.X_Coordinates[:1], self.Y_Coordinates[:1], pen= "red")
        
     def switch_layout(self, layout_name):
         # Clear existing layout
@@ -203,6 +207,7 @@ class MainWindow(QMainWindow):
         self.current_layout.Login_button.clicked.connect(lambda: self.switch_layout("Doctor"))
            
     def send_data(self):
+        # Create a socket connection
         vital_sign = random.randint(60, 100)
         self.Y_Coordinates.append(vital_sign)
         self.X_Coordinates = list(np.arange(len(self.Y_Coordinates)))
@@ -217,11 +222,13 @@ class MainWindow(QMainWindow):
                 'username': self.username,
                 'vitalSign' : vital_sign  
             }
+            
             serialized_data = json.dumps(update_sign)
             self.client_socket.sendall(serialized_data.encode())
             print("Data sent successfully")
         except Exception as e:
             print(f"Failed to send data: {e}")
+
             
 
 
