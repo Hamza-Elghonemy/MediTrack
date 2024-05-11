@@ -1,4 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QRegExpValidator
+from PyQt5.QtCore import QRegExp
 
 
 class LogIn(object):
@@ -57,6 +59,11 @@ class LogIn(object):
                 self.label_2.setStyleSheet("color:black;")
                 self.label_2.setObjectName("label_2")
                 self.horizontalLayout_3.addWidget(self.label_2)
+                # Create a QRegExp object with a regular expression that matches any string of characters
+                regex = QRegExp("[a-zA-Z_]+")
+                # Create a QRegExpValidator object with the QRegExp object
+                validator = QRegExpValidator(regex)
+                self.label_2.setValidator(validator)
                 self.pushButton = QtWidgets.QPushButton(self.signupbox)
                 sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
                 sizePolicy.setHorizontalStretch(0)

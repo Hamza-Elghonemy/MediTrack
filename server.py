@@ -1,6 +1,8 @@
 import redis
 import json
 import socket
+import numpy as np
+
 
 redis_host='redis-17832.c281.us-east-1-2.ec2.redns.redis-cloud.com'
 redis_port = 17832
@@ -71,6 +73,9 @@ doctor_specialty = 'Neurology'
 found_doctors = find_doctor_by_specialty(doctor_specialty, doctors)
 for doctor in found_doctors:
     print(doctor['name'])
+    
+
+    
 
 def server_program():
     host = 'localhost'
