@@ -66,7 +66,7 @@ def find_doctor_by_specialty(specialty, doctors):
 # Example: Retrieve patient by name
 patient_name = 'Bob'
 found_patient = find_patient_by_name(patient_name, patients)
-print(found_patient["name"])
+
 
 # Example: Retrieve doctors by specialty
 doctor_specialty = 'Neurology'
@@ -97,3 +97,5 @@ def server_program():
         data = input(' -> ')
         conn.send(data.encode())  # send data to the client
         
+if __name__ == '__main__':
+    server_program()
