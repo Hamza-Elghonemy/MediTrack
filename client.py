@@ -122,6 +122,7 @@ class MainWindow(QMainWindow):
 
     def register_user(self):
         username = self.current_layout.textEdit_4.toPlainText()
+        self.username = username
         self.email = self.current_layout.textEdit_3.toPlainText()
         current_email = self.email
         age = self.current_layout.ageText.toPlainText()
@@ -159,8 +160,8 @@ class MainWindow(QMainWindow):
         # Send data to server
         client_socket.sendall(encoded_data)
         
-        self.switch_layout("Doctor")
-        self.timer.setInterval(100)
+        self.current_layout.signupButton.clicked.connect(lambda: self.switch_layout("Doctor"))
+        self.timer.setInterval(5000)
         self.timer.timeout.connect(self.send_data)
         self.timer.start()
         self.data_line =self.current_layout.graphicsView.plot(self.X_Coordinates[:1], self.Y_Coordinates[:1], pen= "red")
@@ -213,7 +214,7 @@ class MainWindow(QMainWindow):
         
         try:
             update_sign = {
-                'id' : self.user_id,
+                'username': self.username,
                 'vitalSign' : vital_sign  
             }
             serialized_data = json.dumps(update_sign)
