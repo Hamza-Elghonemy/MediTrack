@@ -47,6 +47,9 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.current_layout = None
         self.setupUi("signup")
+        self.X_Coordinates= []
+        self.Y_Coordinates =[]
+        self.pointPlotted = 0
         self.timer = QTimer()
          # Create a socket object
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -148,13 +151,19 @@ class MainWindow(QMainWindow):
             'vitalSign' : vitalsign,
             'password': password
         }
+        self.Y_Coordinates.append(vitalsign)
+        self.X_Coordinates = list(np.arange(len(self.Y_Coordinates)))
+        
         # Encode data
         encoded_data = json.dumps(user_data).encode()
         # Send data to server
         client_socket.sendall(encoded_data)
         
-        self.current_layout.signupButton.clicked.connect(lambda: self.switch_layout("Doctor"))
+        self.switch_layout("Doctor")
+        self.timer.setInterval(100)
         self.timer.timeout.connect(self.send_data)
+        self.timer.start()
+        self.data_line =self.current_layout.graphicsView.plot(self.X_Coordinates[:1], self.Y_Coordinates[:1], pen= "red")
        
     def switch_layout(self, layout_name):
         # Clear existing layout
@@ -193,8 +202,15 @@ class MainWindow(QMainWindow):
         self.current_layout.Login_button.clicked.connect(lambda: self.switch_layout("Doctor"))
            
     def send_data(self):
-        self.connect_to_server()
         vital_sign = random.randint(60, 100)
+        self.Y_Coordinates.append(vital_sign)
+        self.X_Coordinates = list(np.arange(len(self.Y_Coordinates)))
+        self.pointPlotted += 1
+        self.current_layout.graphicsView.setLimits(xMin=0, xMax=float('inf'))
+        
+        self.data_line.setData(self.X_Coordinates[0 : self.pointPlotted + 1], self.Y_Coordinates[0 : self.pointPlotted + 1])  # Update the data.
+        self.current_layout.graphicsView.getViewBox().setXRange(max(self.X_Coordinates[0: self.pointPlotted + 1]) - 1000, max(self.X_Coordinates[0: self.pointPlotted + 1]))
+        
         try:
             update_sign = {
                 'id' : self.user_id,
