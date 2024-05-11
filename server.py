@@ -75,10 +75,8 @@ for doctor in found_doctors:
     print(doctor['name'])
     
 
-    
-
 def server_program():
-    host = 'localhost'
+    host = '127.0.0.1'
     port = 5000  # initiate port number above 1024
 
     server_socket = socket.socket()  # get instance

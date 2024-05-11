@@ -1,5 +1,6 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
+import resources
 
 
 class SignUp(object):
@@ -456,7 +457,7 @@ class SignUp(object):
         self.signupButton.setText(_translate("MainWindow", " Sign Up "))
         self.label_6.setText(_translate("MainWindow", "Aleady have an account?"))
         self.loginButton.setText(_translate("MainWindow", "LogIn Here!"))
-import resources
+
 
 
 if __name__ == "__main__":
