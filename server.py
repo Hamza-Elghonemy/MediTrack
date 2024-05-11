@@ -8,8 +8,7 @@ redis_host='redis-17832.c281.us-east-1-2.ec2.redns.redis-cloud.com'
 redis_port = 17832
 password = "Hamza123"
 r = redis.Redis(redis_host,redis_port, db=0, password=password)
-patient_id = 0
-
+  
 def load_data_from_json(json_file):
     with open(json_file) as f:
         return json.load(f)
@@ -20,9 +19,40 @@ def store_patients(patients):
     # Store the JSON data in a hash
     r.hmset(f'patient:{patient_id}', patients)
     print(f"Patient data stored with ID: {patient_id}")
-
-    print("Patients and doctors stored in Redis.")
+    return patient_id
     
+def update_diagnosis(patient_id, vitalsign):
+    # Check if the patient exists
+    if r.exists(f'patient:{patient_id}'):
+        # Update the diagnosis in the hash
+        r.hset(f'patient:{patient_id}', 'vitalSign', vitalsign)
+        print(f"Diagnosis updated for patient with ID: {patient_id}")
+    else:
+        print(f"Patient with ID {patient_id} doesn't exist")
+    
+def server_program():
+    host = 'localhost'
+    port = 5000  # initiate port number above 1024
+
+    server_socket = socket.socket()  # get instance
+    server_socket.bind((host, port))  # bind host address and port together
+    while True:
+        server_socket.listen(4)
+        conn, address = server_socket.accept()  # accept new connection 
+        data = conn.recv(1024).decode()
+        user_data = json.loads(data)
+        #if len(user_data) >2:
+        patient_id = store_patients(user_data)
+        #else:
+            # # Check if the received data has a patient ID
+            # if 'username' in user_data and 'vitalSign' in user_data:
+            #     vitalsign = user_data['vitalSign']
+            #     update_diagnosis(patient_id, vitalsign)
+        server_data = "recieved"
+        conn.send(server_data.encode())  # send data to the client
+        
+if __name__ == '__main__':
+    server_program()
 
 # def get_patients_and_doctors():
 #     patients = []
@@ -70,106 +100,3 @@ def store_patients(patients):
 # found_doctors = find_doctor_by_specialty(doctor_specialty, doctors)
 # for doctor in found_doctors:
 #     print(doctor['name'])
-def update_diagnosis(patient_id, vitalsign):
-    # Connect to Redis
-    r = redis.Redis(host='localhost', port=6379, db=0)
-    
-    # Check if the patient exists
-    if r.exists(f'patient:{patient_id}'):
-        # Update the diagnosis in the hash
-        r.hset(f'patient:{patient_id}', 'vitalSign', vitalsign)
-        print(f"Diagnosis updated for patient with ID: {patient_id}")
-    else:
-        print(f"Patient with ID {patient_id} doesn't exist")
-    
-
-def server_program():
-    host = 'localhost'
-    port = 5000  # initiate port number above 1024
-
-    server_socket = socket.socket()  # get instance
-    server_socket.bind((host, port))  # bind host address and port together
-
-    server_socket.listen()
-    conn, address = server_socket.accept()  # accept new connection
-    print("Connection from: " + str(address))
-    while True:
-        server_socket.listen()
-        conn, address = server_socket.accept()  # accept new connection
-        data = conn.recv(1024).decode()
-        user_data = json.loads(data)
-        if len(user_data) >2:
-            store_patients(user_data)
-        else:
-            host = 'localhost'
-            port = 5000  # initiate port number above 1024
-
-            server_socket = socket.socket()  # get instance
-            server_socket.bind((host, port))  # bind host address and port together
-
-            server_socket.listen()
-            conn, address = server_socket.accept()  # accept new connection
-            # Check if the received data has a patient ID
-            if 'patient_id' in user_data and 'vitalSign' in user_data:
-                patient_id = user_data['patient_id']
-                vitalsign = user_data['vitalSign']
-                update_diagnosis(patient_id, vitalsign)
-            # json_str = r.get(patient_id)
-
-            # if json_str:
-            #     # Step 2: Parse the JSON
-            #     loadeddata = json.loads(json_str.decode('utf-8'))
-
-            #     # Step 3: Modify the value
-            #     loadeddata['vitalSign'] = 10
-
-            #     # Step 4: Convert back to JSON
-            #     modified_json_str = json.dumps(loadeddata)
-
-            #     # Step 5: Update Redis
-            #     r.set(patient_id, modified_json_str)
-            #     print("JSON object updated successfully.")
-            # # Decode the JSON string into a Python dictionary
-        # user_data = json.loads(data)
-
-        # # Retrieve the data from the Redis hashmap
-        # existing_data = r.hgetall('patients')
-
-        # # Decode the existing data
-        # existing_data = {k.decode(): v.decode() for k, v in existing_data.items()}
-        # if 'age' not in user_data:
-        #     # Extract the id from the received data
-        #     u_name = user_data['username']
-        #     # Check if a patient with this id exists in the Redis database
-        #     existing_data = r.hgetall(f"patient:{u_name}")
-
-        #     if existing_data:
-        #     # Decode the existing data
-        #         existing_data = {k.decode(): v.decode() for k, v in existing_data.items()}
-        #         for key, value in user_data.items():
-        #             r.hset(f"patient:{u_name}", key, value)
-        #     # Update the patient's data with the received data
-        #         print(f"Updated data for patient with id {u_name}.")
-        #     else:
-        #         print(f"No patient found with id {u_name}.")
-           
-        # else:
-        #     if user_data == existing_data:
-        #         print("Data already exists in the Redis database.")
-        #     else:
-        #     # Store the data in the Redis hashmap
-        #         for key,value in user_data.items():
-        #             r.hset('patients', key, value)
-        #         print("Data stored in the Redis database.")
-
-
-                
-        # Check if the received data already exists in the Redis database
-        
-        
-        
-        server_data = "recieved"
-        #conn.send(server_data.encode())  # send data to the client
-        
-if __name__ == '__main__':
-    server_program()

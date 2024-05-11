@@ -164,10 +164,9 @@ class MainWindow(QMainWindow):
         client_socket.sendall(encoded_data)
 
         
-        self.switch_layout("Doctor")
-        self.timer.setInterval(500)
+        self.timer.setInterval(5000)
         self.timer.timeout.connect(self.send_data)
-        self.timer.start()
+        self.switch_layout("Doctor")
         self.data_line = self.current_layout.graphicsView.plot(self.X_Coordinates[:1], self.Y_Coordinates[:1], pen= "red")
        
     def switch_layout(self, layout_name):
@@ -175,7 +174,7 @@ class MainWindow(QMainWindow):
         self.current_layout = None
         self.centralWidget().deleteLater()  # Clear existing widgets
         # Setup new layout
-        
+        self.timer.start()
         self.setupUi(layout_name)
         self.adjustSize()
         
@@ -207,27 +206,27 @@ class MainWindow(QMainWindow):
         self.current_layout.Login_button.clicked.connect(lambda: self.switch_layout("Doctor"))
            
     def send_data(self):
-        # Create a socket connection
-        vital_sign = random.randint(60, 100)
-        self.Y_Coordinates.append(vital_sign)
-        self.X_Coordinates = list(np.arange(len(self.Y_Coordinates)))
-        self.pointPlotted += 1
-        self.current_layout.graphicsView.setLimits(xMin=0, xMax=float('inf'))
-        
-        self.data_line.setData(self.X_Coordinates[0 : self.pointPlotted + 1], self.Y_Coordinates[0 : self.pointPlotted + 1])  # Update the data.
-        self.current_layout.graphicsView.getViewBox().setXRange(max(self.X_Coordinates[0: self.pointPlotted + 1]) - 1000, max(self.X_Coordinates[0: self.pointPlotted + 1]))
-        
-        try:
-            update_sign = {
-                'username': self.username,
-                'vitalSign' : vital_sign  
-            }
+            # Create a socket connection
+            vital_sign = random.randint(60, 100)
+            self.Y_Coordinates.append(vital_sign)
+            self.X_Coordinates = list(np.arange(len(self.Y_Coordinates)))
+            self.pointPlotted += 1
+            self.current_layout.graphicsView.setLimits(xMin=0, xMax=float('inf'))
             
-            serialized_data = json.dumps(update_sign)
-            self.client_socket.sendall(serialized_data.encode())
-            print("Data sent successfully")
-        except Exception as e:
-            print(f"Failed to send data: {e}")
+            self.data_line.setData(self.X_Coordinates[0 : self.pointPlotted + 1], self.Y_Coordinates[0 : self.pointPlotted + 1])  # Update the data.
+            self.current_layout.graphicsView.getViewBox().setXRange(max(self.X_Coordinates[0: self.pointPlotted + 1]) - 1000, max(self.X_Coordinates[0: self.pointPlotted + 1]))
+            
+            try:
+                update_sign = {
+                    'username': self.username,
+                    'vitalSign' : vital_sign  
+                }
+                
+                serialized_data = json.dumps(update_sign)
+                self.client_socket.sendall(serialized_data.encode())
+                print("Data sent successfully")
+            except Exception as e:
+                print(f"Failed to send data: {e}")
 
             
 
