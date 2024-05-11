@@ -1,5 +1,6 @@
 import redis
 import json
+import socket
 
 redis_host='redis-17832.c281.us-east-1-2.ec2.redns.redis-cloud.com'
 redis_port = 17832
@@ -71,18 +72,12 @@ found_doctors = find_doctor_by_specialty(doctor_specialty, doctors)
 for doctor in found_doctors:
     print(doctor['name'])
 
-import socket
-import redis
-
 def server_program():
     host = 'localhost'
     port = 5000  # initiate port number above 1024
 
     server_socket = socket.socket()  # get instance
     server_socket.bind((host, port))  # bind host address and port together
-
-    # Create a Redis connection
-    r = redis.Redis(host='redis-17832.c281.us-east-1-2.ec2.redns.redis-cloud.com', port=17832, db=0,password='Hamza123')
 
     server_socket.listen(2)
     conn, address = server_socket.accept()  # accept new connection
@@ -99,8 +94,3 @@ def server_program():
         data = input(' -> ')
         conn.send(data.encode())  # send data to the client
         
-
-    
-
-if __name__ == '__main__':
-    server_program()
