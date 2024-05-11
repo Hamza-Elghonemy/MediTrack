@@ -73,7 +73,6 @@ class MainWindow(QMainWindow):
             self.current_layout.signupButton.clicked.connect(self.register_user)
         elif layout_name == "login":
             self.current_layout.pushButton.clicked.connect(lambda: self.switch_layout("signup"))
-            self.current_layout.Login_button.clicked.connect(lambda: self.switch_layout("Doctor"))
             self.current_layout.Login_button.clicked.connect(self.user_login)
         elif layout_name == "Doctor":
             self.current_layout.logoutButton.clicked.connect(lambda: self.switch_layout("login"))
@@ -119,10 +118,9 @@ class MainWindow(QMainWindow):
             return 0    
 
     def register_user(self):
-        self.user_id = int(uuid.uuid4())
-        id = self.user_id
         username = self.current_layout.textEdit_4.toPlainText()
-        email = self.current_layout.textEdit_3.toPlainText()
+        self.email = self.current_layout.textEdit_3.toPlainText()
+        current_email = self.email
         age = self.current_layout.ageText.toPlainText()
         gender =None
         if self.current_layout.radioButton_2.isChecked():
@@ -133,7 +131,7 @@ class MainWindow(QMainWindow):
         confirm = self.current_layout.textEdit.toPlainText()
 
         # Check if all required fields are filled
-        if not all([username, email, age, gender, password, confirm]):
+        if not all([username, current_email, age, gender, password, confirm]):
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Warning)
             msg.setText("Please fill in all the required fields.")
@@ -143,9 +141,8 @@ class MainWindow(QMainWindow):
         vitalsign =  random.randint(60, 100) 
 
         user_data = {
-            'user_id' : id,
             'username': username,
-            'email': email,
+            'email': current_email,
             'age': age,
             'gender': gender,
             'vitalSign' : vitalsign,
@@ -169,8 +166,17 @@ class MainWindow(QMainWindow):
         self.adjustSize()
         
     def user_login(self):
-        username = self.current_layout.textEdit_3.toPlainText()
-        password = self.current_layout.textEdit_2.toPlainText()
+        username = self.current_layout.username_text.toPlainText()
+        password = self.current_layout.password_text.toPlainText()
+        
+        if not all([username, password]):
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("Please fill in all the required fields.")
+            msg.setWindowTitle("Warning")
+            msg.exec_()
+            return
+        
         user_data = {
             'username': username,
             'password': password
@@ -184,6 +190,7 @@ class MainWindow(QMainWindow):
         # Receive data from the server
         data = self.client_socket.recv(1024).decode()
         print('Received from server: ' + data)
+        self.current_layout.Login_button.clicked.connect(lambda: self.switch_layout("Doctor"))
            
     def send_data(self):
         self.connect_to_server()
@@ -191,7 +198,7 @@ class MainWindow(QMainWindow):
         try:
             update_sign = {
                 'id' : self.user_id,
-                'Vital-sign' : vital_sign  
+                'vitalSign' : vital_sign  
             }
             serialized_data = json.dumps(update_sign)
             self.client_socket.sendall(serialized_data.encode())
