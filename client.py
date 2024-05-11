@@ -187,7 +187,7 @@ class MainWindow(QMainWindow):
            
     def send_data(self):
         self.connect_to_server()
-        vital_sign = self.choose_random_signal()
+        vital_sign = random.randint(60, 100)
         try:
             update_sign = {
                 'id' : self.user_id,
