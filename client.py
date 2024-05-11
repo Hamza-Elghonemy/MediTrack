@@ -9,13 +9,17 @@ import numpy as np
 from scipy.signal import find_peaks
 import json
 from PyQt5.QtWidgets import QMessageBox
+import uuid # unique id for the users created 
+import os
+import random
+import time
 
 
-# HOST = 'localhost'
-# PORT = 5000
-# #Connect to server
-# client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# client_socket.connect((HOST, PORT))
+HOST = 'localhost'
+PORT = 5000
+#Connect to server
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((HOST, PORT))
 
 emg_signals = [r'Datasets\EMG\emg_healthy.dat',r'Datasets\EMG\emg_myopathy.dat',r'Datasets\EMG\emg_neuropathy.dat']
 emg_data = []
@@ -43,6 +47,16 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.current_layout = None
         self.setupUi("signup")
+        self.timer = QTimer()
+         # Create a socket object
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Define the server address and port
+        self.HOST = 'localhost'
+        self.PORT = 5000
+
+        # Connect to the server
+        self.client_socket.connect((self.HOST, self.PORT))
         
 
     def setupUi(self, layout_name):
@@ -63,9 +77,48 @@ class MainWindow(QMainWindow):
         elif layout_name == "Doctor":
             self.current_layout.logoutButton.clicked.connect(lambda: self.switch_layout("login"))
             
+            
+    def connect_to_server(self):
+        try:
+            self.client_socket.connect((self.HOST, self.PORT))
+            print("Connected to server")
+        except Exception as e:
+            print(f"Connection failed: {e}")
+
+    def load_signal_files(self):
+        try:
+            # List all files in the folder
+            files = os.listdir("C://Users//Ahmed Taha//Desktop//MediTrack//Datasets//EMG")
+            self.signals = []
+
+            # Iterate through each file
+            for file_name in files:
+                file_path = os.path.join("C://Users//Ahmed Taha//Desktop//MediTrack//Datasets//EMG", file_name)
+                if os.path.isfile(file_path):
+                    # Process the file and extract signal points
+                    with open(file_path, 'r') as file:
+                        # Assuming each file contains signal points separated by newline characters
+                        signal_points = file.read().splitlines()
+                        self.signals.append(signal_points)
+
+        except Exception as e:
+            print("Error occurred while loading signal files:", e)
+
+    def choose_random_signal(self):
+        try:
+            # Choose a random signal from the list
+            if self.signals:
+                random_signal = random.choice(self.signals)
+                max_peak = max(random_signal, key=float)
+                return max_peak    
+            else:
+                return 0
+        except Exception as e:
+            print("Error occurred while choosing a random signal:", e)
+            return 0    
 
     def register_user(self):
-        
+        self.user_id = str(uuid.uuid4())
         username = self.current_layout.textEdit_4.toPlainText()
         email = self.current_layout.textEdit_3.toPlainText()
         age = self.current_layout.ageText.toPlainText()
@@ -87,20 +140,21 @@ class MainWindow(QMainWindow):
             return
 
         user_data = {
+            'id' : self.user_id,
             'username': username,
             'email': email,
             'age': age,
             'gender': gender,
+            'Vital-sign' : self.choose_random_signal,
             'password': password
         }
         # Encode data
-        #TODO: hamza check sending json file to the server
-        
-        #encoded_data = json.dumps(user_data).encode()
+        encoded_data = json.dumps(user_data).encode()
         # Send data to server
-        #client_socket.sendall(encoded_data)
+        client_socket.sendall(encoded_data)
         
         self.current_layout.signupButton.clicked.connect(lambda: self.switch_layout("Doctor"))
+        self.timer.timeout.connect(self.send_data)
        
     def switch_layout(self, layout_name):
         # Clear existing layout
@@ -110,13 +164,43 @@ class MainWindow(QMainWindow):
         
         self.setupUi(layout_name)
         self.adjustSize()
-        
-   
+    def user_login(self):
+        username = self.current_layout.textEdit_4.toPlainText()
+        password = self.current_layout.textEdit_2.toPlainText()
+        user_data = {
+            'username': username,
+            'password': password
+        }
+        # Encode data
+        encoded_data = json.dumps(user_data).encode()
+
+        # Send data to server
+        self.client_socket.sendall(encoded_data)
+
+        # Receive data from the server
+        data = self.client_socket.recv(1024).decode()
+        print('Received from server: ' + data)
+           
+    def send_data(self):
+        self.connect_to_server()
+        vital_sign = self.choose_random_signal()
+        try:
+            update_sign = {
+                'id' : self.user_id,
+                'Vital-sign' : vital_sign  
+            }
+            serialized_data = json.dumps(update_sign)
+            self.client_socket.sendall(serialized_data.encode())
+            print("Data sent successfully")
+        except Exception as e:
+            print(f"Failed to send data: {e}")
+            
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
+    window.load_signal_files()
     #client_program()
     sys.exit(app.exec_())
