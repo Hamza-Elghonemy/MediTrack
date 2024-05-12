@@ -29,7 +29,7 @@ border:none;
 border-radius: 20px;
 background-color:#fefeff;
 }
-#recordButton, #reservationbutton,#settingsbutton, #logoutButton, #profileButton{
+#recordButton, #reservationbutton,#settingsbutton, #logoutButton, #profileButton, #confirmButton{
 padding:10px 5px;
 text-align:left;
 font: 18px;
@@ -412,7 +412,7 @@ border: 2px solid #2596be;
               <number>0</number>
              </property>
              <property name="rightMargin">
-              <number>0</number>
+              <number>10</number>
              </property>
              <property name="bottomMargin">
               <number>0</number>
@@ -496,6 +496,13 @@ border: 2px solid #2596be;
               </widget>
              </item>
             </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="confirmButton">
+            <property name="text">
+             <string>Confirm</string>
+            </property>
            </widget>
           </item>
           <item alignment="Qt::AlignRight">

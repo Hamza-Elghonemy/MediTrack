@@ -13,6 +13,7 @@ import uuid # unique id for the users created
 import os
 import random
 import time
+from app import  search_Patient,filterPatients
 
 
 HOST = 'localhost'
@@ -20,27 +21,6 @@ PORT = 5000
 #Connect to server
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((HOST, PORT))
-
-emg_signals = [r'Datasets\EMG\emg_healthy.dat',r'Datasets\EMG\emg_myopathy.dat',r'Datasets\EMG\emg_neuropathy.dat']
-emg_data = []
-peaks = []
-for emg in emg_signals:
-    emg_data.append(np.fromfile(emg, dtype=int) / 10000000)
-    peaks.append(len(find_peaks(emg_data[-1], height=0)[0]))
-
-# def client_program():
-#     host = 'localhost'  # as both code is running on same pc
-#     port = 5000  # socket server port number
-
-#     client_socket = socket.socket()  # instantiate
-#     client_socket.connect((host, port))  # connect to the server
-
-#     data = input(' -> ')
-#     client_socket.send(data.encode())  # send data to the server
-#     data = client_socket.recv(1024).decode()  # receive response
-
-#     print('Received from server: ' + data)  # show response
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -50,18 +30,18 @@ class MainWindow(QMainWindow):
         self.X_Coordinates= []
         self.Y_Coordinates =[]
         self.pointPlotted = 0
-        
-        self.currentid = 1
+        self.current_patient = None
+        self.patient_id = 1
         self.timer = QTimer()
-         # Create a socket object
+        self.timer.setInterval(5000)
+        # Create a socket object
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
         # Define the server address and port
         self.HOST = 'localhost'
         self.PORT = 5000
-
-        # Connect to the server
+                # Connect to the server
         self.client_socket.connect((self.HOST, self.PORT))
+        self.timer.timeout.connect(self.simulate)
         
 
     def setupUi(self, layout_name):
@@ -80,9 +60,40 @@ class MainWindow(QMainWindow):
             self.current_layout.pushButton.clicked.connect(lambda: self.switch_layout("signup"))
             self.current_layout.Login_button.clicked.connect(self.user_login)
         elif layout_name == "Doctor":
+            self.current_layout.confirmButton.clicked.connect(self.search_user)
+            self.current_layout.searchButton.clicked.connect(self.filter_patients)
             self.current_layout.logoutButton.clicked.connect(lambda: self.switch_layout("login"))
             
+    def filter_patients(self):
+        try:
+            filteration = self.current_layout.comboBox.currentText()
+            print(filteration)
+            comparedSign = int(self.current_layout.lineEdit_3.text())
+            filteredPatients = filterPatients(filter= filteration ,current_sign= comparedSign)
+            self.current_layout.tableWidget.clearContents()
+            self.current_layout.tableWidget.setRowCount(0)
+            # Add a row to the table
+
+            # Set data for each cell in the row
+            for patient in filteredPatients:
+                row_count = self.current_layout.tableWidget.rowCount()
+                self.current_layout.tableWidget.insertRow(row_count)
+                patient_item = QtWidgets.QTableWidgetItem(patient['username'])
+                vitalSign_item = QtWidgets.QTableWidgetItem(str(patient['vitalSign']))
+                self.current_layout.tableWidget.setItem(row_count, 0, patient_item)     # Set item at column 1
+                self.current_layout.tableWidget.setItem(row_count, 1, vitalSign_item)   # Set item at column 2
+        except Exception as e:
+            print(f"error in filteration: {e}")
             
+    def search_user(self):
+        try:
+            currentName= self.current_layout.lineEdit.text()
+            self.patient_id, self.current_patient = search_Patient(currentName)
+            self.current_layout.nameLabel.setText(self.current_patient['username'])
+            self.current_layout.idLabel.setText(f"Age: {self.current_patient['age']}")  
+        except Exception as e:
+            print(f"error in searching: {e}")
+                
     def connect_to_server(self):
         try:
             self.client_socket.connect((self.HOST, self.PORT))
@@ -123,6 +134,7 @@ class MainWindow(QMainWindow):
             return 0    
 
     def register_user(self):
+
         username = self.current_layout.textEdit_4.toPlainText()
         self.username = username
         self.email = self.current_layout.textEdit_3.toPlainText()
@@ -146,7 +158,7 @@ class MainWindow(QMainWindow):
             return
         vitalsign =  random.randint(60, 100) 
 
-        user_data = {
+        self.current_patient = {
             'username': username,
             'email': current_email,
             'age': age,
@@ -154,27 +166,27 @@ class MainWindow(QMainWindow):
             'vitalSign' : vitalsign,
             'password': password
         }
-        self.currentid+= 1
+        self.patient_id += 1
         self.Y_Coordinates.append(vitalsign)
         self.X_Coordinates = list(np.arange(len(self.Y_Coordinates)))
         
         # Encode data
-        encoded_data = json.dumps(user_data).encode()
+        encoded_data = json.dumps(self.current_patient).encode()
         # Send data to server
         client_socket.sendall(encoded_data)
-
-        
-        self.timer.setInterval(5000)
-        self.timer.timeout.connect(self.send_data)
         self.switch_layout("Doctor")
         self.data_line = self.current_layout.graphicsView.plot(self.X_Coordinates[:1], self.Y_Coordinates[:1], pen= "red")
        
     def switch_layout(self, layout_name):
         # Clear existing layout
-        self.current_layout = None
+        #self.current_layout = None
+        self.current_layout = layout_name
         self.centralWidget().deleteLater()  # Clear existing widgets
         # Setup new layout
-        self.timer.start()
+        print(self.current_layout)
+        if self.current_layout == "Doctor":
+            print(self.current_layout)
+            self.timer.start()
         self.setupUi(layout_name)
         self.adjustSize()
         
@@ -189,40 +201,51 @@ class MainWindow(QMainWindow):
             msg.setWindowTitle("Warning")
             msg.exec_()
             return
+        self.current_patient = search_Patient(username, password)
+        self.show_current()
         
-        user_data = {
-            'username': username,
-            'password': password
-        }
-        # Encode data
-        encoded_data = json.dumps(user_data).encode()
-
-        # Send data to server
-        self.client_socket.sendall(encoded_data)
-
-        # Receive data from the server
-        data = self.client_socket.recv(1024).decode()
-        print('Received from server: ' + data)
-        self.current_layout.Login_button.clicked.connect(lambda: self.switch_layout("Doctor"))
-           
-    def send_data(self):
+    def Show_current(self):
+        current_sign = self.current_patient['vitalSign']
+    
+    def simulate(self):
+        try:
+            vital_sign = random.randint(40, 200)
+            if vital_sign < 40:
+                self.current_layout.label_5.setPixmap(QtGui.QPixmap("Icons/backwardth.png"))
+            elif vital_sign < 70:
+                self.current_layout.label_5.setPixmap(QtGui.QPixmap("Icons/rightth.png"))
+            elif vital_sign < 90:
+                self.current_layout.label_5.setPixmap(QtGui.QPixmap("Icons/leftth.png"))
+            else:
+                self.current_layout.label_5.setPixmap(QtGui.QPixmap("Icons/forwardth.png"))
+            
+            #update server
+            self.send_data(vital_sign)
+            self.current_layout.vitalLabel.setText(str(vital_sign))
+            self.current_layout.nameLabel.setText(self.current_patient['username'])
+            self.current_layout.idLabel.setText(f"Age: {self.current_patient['age']}")  
+            
+            self.Y_Coordinates.append(vital_sign)
+            self.X_Coordinates = list(np.arange(len(self.Y_Coordinates)))
+            self.pointPlotted += 1
+            self.current_layout.graphicsView.setLimits(xMin=0, xMax=float('inf'))
+            
+            self.data_line.setData(self.X_Coordinates[0 : self.pointPlotted + 1], self.Y_Coordinates[0 : self.pointPlotted + 1])  # Update the data.
+            self.current_layout.graphicsView.getViewBox().setXRange(max(self.X_Coordinates[0: self.pointPlotted + 1]) - 10, max(self.X_Coordinates[0: self.pointPlotted + 1]))
+        except Exception as e:
+            print(f"error in simulation:{e}")
+            
+    #TODO: update using the id   
+    def send_data(self, sign):
     # Create a new socket connection
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_socket.connect((self.HOST, self.PORT))
-
-        vital_sign = random.randint(60, 100)
-        self.Y_Coordinates.append(vital_sign)
-        self.X_Coordinates = list(np.arange(len(self.Y_Coordinates)))
-        self.pointPlotted += 1
-        self.current_layout.graphicsView.setLimits(xMin=0, xMax=float('inf'))
-        
-        self.data_line.setData(self.X_Coordinates[0 : self.pointPlotted + 1], self.Y_Coordinates[0 : self.pointPlotted + 1])  # Update the data.
-        self.current_layout.graphicsView.getViewBox().setXRange(max(self.X_Coordinates[0: self.pointPlotted + 1]) - 1000, max(self.X_Coordinates[0: self.pointPlotted + 1]))
-        
+        # if self.current_layout.lineEdit.text:
+        #     sign = self.current_patient['vitalSign']
         try:
             update_sign = {
-                'username': self.username,
-                'vitalSign' : vital_sign  
+                'name' : self.current_patient['username'],
+                'vitalSign' : sign  
             }
             
             serialized_data = json.dumps(update_sign)

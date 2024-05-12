@@ -10,7 +10,7 @@ class SignUp(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setStyleSheet("*{\n"
 "color:#000000;\n"
-"font-family: Segoe Script;\n"
+"font-family: Arial;\n"
 "border:none;\n"
 "}\n"
 "\n"
