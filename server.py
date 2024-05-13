@@ -22,7 +22,7 @@ class servers():
         
     def update_diagnosis(self, name, vitalsign):
         patientList = self.get_patients_and_doctors()
-        _,patient = self.find_patient(name, patientList)
+        patient = self.find_patient(name, patientList)
         # Check if the patient exists
         if r.exists(f'patient:{patient['username']}'):
             # Update the diagnosis in the hash
@@ -34,7 +34,7 @@ class servers():
     def find_patient(self,name, patients,password = None):
         for patient in patients:
             if patient['username'] == name or patient['password'] == password:
-                return self.patient_id, patient
+                return patient
         return None
     
     def filterPatients(self, patients, sign, filtration):
