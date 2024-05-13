@@ -34,14 +34,6 @@ class MainWindow(QMainWindow):
         self.patient_id = 1
         self.timer = QTimer()
         self.timer.setInterval(5000)
-        # Create a socket object
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # Define the server address and port
-        self.HOST = 'localhost'
-        self.PORT = 5000
-                # Connect to the server
-        self.client_socket.connect((self.HOST, self.PORT))
-        self.timer.timeout.connect(self.simulate)
         
 
     def setupUi(self, layout_name):
@@ -62,7 +54,15 @@ class MainWindow(QMainWindow):
         elif layout_name == "Doctor":
             self.current_layout.confirmButton.clicked.connect(self.search_user)
             self.current_layout.searchButton.clicked.connect(self.filter_patients)
-            self.current_layout.logoutButton.clicked.connect(lambda: self.switch_layout("login"))
+            self.current_layout.logoutButton.clicked.connect(self.custom_logout_action)
+
+    def custom_logout_action(self):
+        self.timer.stop()
+        self.client_socket.close()
+        self.switch_layout("signup")
+        self.register_user()
+        # Add any additional custom logout actions here
+
             
     def filter_patients(self):
         try:
@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
     def search_user(self):
         try:
             currentName= self.current_layout.lineEdit.text()
-            self.patient_id, self.current_patient = search_Patient(currentName)
+            self.current_patient = search_Patient(currentName)
             self.current_layout.nameLabel.setText(self.current_patient['username'])
             self.current_layout.idLabel.setText(f"Age: {self.current_patient['age']}")  
         except Exception as e:
@@ -134,6 +134,14 @@ class MainWindow(QMainWindow):
             return 0    
 
     def register_user(self):
+        # Create a socket object
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Define the server address and port
+        self.HOST = 'localhost'
+        self.PORT = 5000
+                # Connect to the server
+        self.client_socket.connect((self.HOST, self.PORT))
+        self.timer.timeout.connect(self.simulate)
 
         username = self.current_layout.textEdit_4.toPlainText()
         self.username = username

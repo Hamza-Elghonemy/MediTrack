@@ -88,7 +88,7 @@ class SignUp(object):
         self.verticalLayout.setContentsMargins(54, 37, 36, 44)
         self.verticalLayout.setObjectName("verticalLayout")
         self.middlewidget = QtWidgets.QWidget(self.centralwidget)
-        self.middlewidget.setMinimumSize(QtCore.QSize(0, 515))
+        self.middlewidget.setMinimumSize(QtCore.QSize(650, 655))
         self.middlewidget.setObjectName("middlewidget")
         self.verticalLayout_10 = QtWidgets.QVBoxLayout(self.middlewidget)
         self.verticalLayout_10.setContentsMargins(41, 1, 79, 16)
