@@ -1,7 +1,7 @@
 from server import *
 
 
-s =servers()
+s = servers()
 
 def search_Patient(name, password = None):
     patients = s.get_patients_and_doctors()
