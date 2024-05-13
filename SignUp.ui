@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>757</width>
-    <height>770</height>
+    <width>740</width>
+    <height>736</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -108,8 +108,8 @@ color: #2596be;
      <widget class="QWidget" name="middlewidget" native="true">
       <property name="minimumSize">
        <size>
-        <width>0</width>
-        <height>515</height>
+        <width>650</width>
+        <height>655</height>
        </size>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_10">

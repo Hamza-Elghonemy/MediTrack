@@ -557,7 +557,7 @@ class Ui_MainWindow(object):
         self.settingsbutton.setText(_translate("MainWindow", "Settings"))
         self.appheader.setText(_translate("MainWindow", " MediTrack"))
         self.lineEdit.setPlaceholderText(_translate("MainWindow", "Enter Name/ ID"))
-        self.vitalsign.setText(_translate("MainWindow", "Flexions"))
+        self.vitalsign.setText(_translate("MainWindow", "Patient Data"))
         self.vitalLabel.setText(_translate("MainWindow", "0"))
         self.EMGlabel.setText(_translate("MainWindow", "EMG Signal"))
         self.filterflex.setText(_translate("MainWindow", "Flexions"))

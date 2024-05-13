@@ -60,6 +60,7 @@ class MainWindow(QMainWindow):
         self.timer.stop()
         self.client_socket.close()
         self.switch_layout("signup")
+        self.register_user()
         # Add any additional custom logout actions here
 
             
