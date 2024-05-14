@@ -177,12 +177,12 @@ class MainWindow(QMainWindow):
     def load_signal_files(self):
         try:
             # List all files in the folder
-            files = os.listdir("C://Users//Ahmed Taha//Desktop//MediTrack//Datasets//EMG")
+            files = os.listdir("C://University//Term 2//App Dev//Assignment 4//MediTrack//Datasets//EMG")
             self.signals = []
 
             # Iterate through each file
             for file_name in files:
-                file_path = os.path.join("C://Users//Ahmed Taha//Desktop//MediTrack//Datasets//EMG", file_name)
+                file_path = os.path.join("C://University//Term 2//App Dev//Assignment 4//MediTrack//Datasets//EMG", file_name)
                 if os.path.isfile(file_path):
                     # Process the file and extract signal points
                     with open(file_path, 'r') as file:
@@ -240,16 +240,14 @@ class MainWindow(QMainWindow):
         vitalsign =  []
         sign = random.randint(60, 100)
         vitalsign.append(sign) 
-        vitalsign_bytes = json.dumps(vitalsign).encode('utf-8')
-        vitalsign_base64 = base64.b64encode(vitalsign_bytes)
-        
+        vitalsign_str = json.dumps(vitalsign)
 
         self.current_patient = {
             'username': username,
             'email': current_email,
             'age': age,
             'gender': gender,
-            'vitalSignList' : vitalsign_base64.decode('utf-8'),
+            'vitalSignList' : vitalsign_str,
             'vitalSign' : sign,
             'password': password
         }

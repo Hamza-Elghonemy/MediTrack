@@ -24,21 +24,26 @@ class servers():
         patientList = self.get_patients_and_doctors()
         patient = self.find_patient(name, patientList)
         # Check if the patient exists
-        if r.exists(f'patient:{patient['username']}'):
-            current_vitalsign = r.hget(f"patient:{patient['username']}", "vitalSignList")
-             
-             #Decode the base64 string to bytes
-            vitalsign_bytes = base64.b64decode(current_vitalsign)
-            # If the vitalSign list exists, append the new vitalsign to it
-            updated_vitalsign = eval(vitalsign_bytes)
-            #updated_vitalsign = json.loads(updated_vitalsign)
-            updated_vitalsign.append(vitalsign)
-            updated_vitalsign_bytes = json.dumps(updated_vitalsign).encode('utf-8')
-            updated_vitalsign_base64 = base64.b64encode(updated_vitalsign_bytes)
-            # Update the diagnosis in the hash
-            r.hset(f'patient:{patient["username"]}', 'vitalSignList', updated_vitalsign_base64)
-            r.hset(f'patient:{patient['username']}', 'vitalSign', vitalsign)
-            print(f"Diagnosis updated for patient with ID: {self.patient_id}")
+        if r.exists(f'patient:{patient["username"]}'):
+            current_vitalsign_str = r.hget(f"patient:{patient['username']}", "vitalSignList")
+
+            # Check if the string is not empty
+            if current_vitalsign_str:
+                # Load the JSON string to a list
+                current_vitalsign = json.loads(current_vitalsign_str)
+
+                # Append the new vitalsign to the list
+                current_vitalsign.append(vitalsign)
+
+                # Convert the updated list to a JSON string
+                updated_vitalsign_str = json.dumps(current_vitalsign)
+
+                # Update the vitalSignList in the hash
+                r.hset(f'patient:{patient["username"]}', 'vitalSignList', updated_vitalsign_str)
+                r.hset(f'patient:{patient["username"]}', 'vitalSign', vitalsign)
+                print(f"Diagnosis updated for patient with ID: {self.patient_id}")
+            else:
+                print(f"No existing vitalSignList for patient with ID: {self.patient_id}")
         else:
             print(f"Patient with ID {self.patient_id} doesn't exist")
             
@@ -85,7 +90,11 @@ class servers():
             conn,_ = server_socket.accept()  # accept new connection 
             data = conn.recv(1024).decode()
             if data:
-                user_data = json.loads(data)
+                try:
+                    user_data = json.loads(data)
+                except json.JSONDecodeError:
+                    print("Received invalid JSON data:", data)
+                    continue
                 if  len(user_data) ==1:
                     patient_lists = self.get_patients_and_doctors()
                     name = user_data['name']
