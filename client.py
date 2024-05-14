@@ -14,6 +14,9 @@ import os
 import random
 import time
 from app import  search_Patient,filterPatients
+import threading
+import base64
+
 
 
 HOST = 'localhost'
@@ -29,6 +32,7 @@ class MainWindow(QMainWindow):
         self.setupUi("signup")
         self.X_Coordinates= []
         self.Y_Coordinates =[]
+        self.filteredPatients = []
         self.pointPlotted = 0
         self.current_patient = None
         self.patient_id = 1
@@ -62,33 +66,103 @@ class MainWindow(QMainWindow):
         self.switch_layout("signup")
         self.register_user()
         # Add any additional custom logout actions here
+        
+    def serverFiltration(self):
+        try:
+            while True:
+                self.received = self.client_socket.recv(1024).decode('utf-8')# Receive data from the socket
+                print(f"printing the received for filtration : {self.received}")
+                self.received = json.loads(self.received)
+                self.filteredPatients = self.received
+                try:
+                    self.current_layout.tableWidget.clearContents()
+                    self.current_layout.tableWidget.setRowCount(0)
+                    # Add a row to the table
+                    # Set data for each cell in the row
+                    for patient in self.filteredPatients:
+                        row_count = self.current_layout.tableWidget.rowCount()
+                        self.current_layout.tableWidget.insertRow(row_count)
+                        patient_item = QtWidgets.QTableWidgetItem(patient['username'])
+                        vitalSign_item = QtWidgets.QTableWidgetItem(str(patient['vitalSign']))
+                        self.current_layout.tableWidget.setItem(row_count, 0, patient_item)     # Set item at column 1
+                        self.current_layout.tableWidget.setItem(row_count, 1, vitalSign_item)   # Set item at column 2
+                except Exception as e:
+                        print(f"error in filteration: {e}")
+                break
+        except Exception as e:
+            print(f"error in receiving data for filtration : {e}")
 
             
     def filter_patients(self):
         try:
+            global HOST, PORT
+            self.client_socket.close()
+            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.client_socket.connect((HOST, PORT))
+            
+            currentName= self.current_layout.lineEdit.text()
             filteration = self.current_layout.comboBox.currentText()
-            print(filteration)
             comparedSign = int(self.current_layout.lineEdit_3.text())
-            filteredPatients = filterPatients(filter= filteration ,current_sign= comparedSign)
-            self.current_layout.tableWidget.clearContents()
-            self.current_layout.tableWidget.setRowCount(0)
-            # Add a row to the table
-
-            # Set data for each cell in the row
-            for patient in filteredPatients:
-                row_count = self.current_layout.tableWidget.rowCount()
-                self.current_layout.tableWidget.insertRow(row_count)
-                patient_item = QtWidgets.QTableWidgetItem(patient['username'])
-                vitalSign_item = QtWidgets.QTableWidgetItem(str(patient['vitalSign']))
-                self.current_layout.tableWidget.setItem(row_count, 0, patient_item)     # Set item at column 1
-                self.current_layout.tableWidget.setItem(row_count, 1, vitalSign_item)   # Set item at column 2
+            #self.current_patient = search_Patient(currentName)
+            update_sign = {
+                'checker'  : 1,
+                'condition' : filteration,
+                'vitalSign' : comparedSign
+            }
+            
+            serialized_data = json.dumps(update_sign)
+            self.client_socket.sendall(serialized_data.encode())
+            thread = threading.Thread(target=self.serverFiltration)
+            thread.start()
+            #print(filteration)
+            #filteredPatients = filterPatients(filter= filteration ,current_sign= comparedSign)
+        #     self.current_layout.tableWidget.clearContents()
+        #     self.current_layout.tableWidget.setRowCount(0)
+        #     # Add a row to the table
+        #     # Set data for each cell in the row
+        #     for patient in self.filteredPatients:
+        #         patient = json.loads(patient)
+        #         row_count = self.current_layout.tableWidget.rowCount()
+        #         self.current_layout.tableWidget.insertRow(row_count)
+        #         patient_item = QtWidgets.QTableWidgetItem(patient['username'])
+        #         vitalSign_item = QtWidgets.QTableWidgetItem(str(patient['vitalSign']))
+        #         self.current_layout.tableWidget.setItem(row_count, 0, patient_item)     # Set item at column 1
+        #         self.current_layout.tableWidget.setItem(row_count, 1, vitalSign_item)   # Set item at column 2
         except Exception as e:
             print(f"error in filteration: {e}")
             
+    def serverRespond(self):
+        try:
+            while True:
+                self.received = self.client_socket.recv(1024).decode('utf-8')# Receive data from the socket
+                current = json.loads(self.received)
+                if current:
+                    print(f"printing the received from search : {current}")
+                    self.current_patient = current
+                    break
+        except Exception as e:
+            print(f"error in receiving data for search : {e}")
+
+            
+            
     def search_user(self):
         try:
+            global HOST, PORT
+            self.client_socket.close()
+            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.client_socket.connect((HOST, PORT))
+            
             currentName= self.current_layout.lineEdit.text()
-            self.current_patient = search_Patient(currentName)
+            #self.current_patient = search_Patient(currentName)
+            update_sign = {
+                'name' : currentName,
+            }
+            
+            serialized_data = json.dumps(update_sign)
+            self.client_socket.sendall(serialized_data.encode())
+            print("Data sent successfully")
+            thread = threading.Thread(target=self.serverRespond)
+            thread.start()
             self.current_layout.nameLabel.setText(self.current_patient['username'])
             self.current_layout.idLabel.setText(f"Age: {self.current_patient['age']}")  
         except Exception as e:
@@ -164,18 +238,24 @@ class MainWindow(QMainWindow):
             msg.setWindowTitle("Warning")
             msg.exec_()
             return
-        vitalsign =  random.randint(60, 100) 
+        vitalsign =  []
+        sign = random.randint(60, 100)
+        vitalsign.append(sign) 
+        vitalsign_bytes = json.dumps(vitalsign).encode('utf-8')
+        vitalsign_base64 = base64.b64encode(vitalsign_bytes)
+        
 
         self.current_patient = {
             'username': username,
             'email': current_email,
             'age': age,
             'gender': gender,
-            'vitalSign' : vitalsign,
+            'vitalSignList' : vitalsign_base64.decode('utf-8'),
+            'vitalSign' : sign,
             'password': password
         }
         self.patient_id += 1
-        self.Y_Coordinates.append(vitalsign)
+        self.Y_Coordinates.append(sign)
         self.X_Coordinates = list(np.arange(len(self.Y_Coordinates)))
         
         # Encode data
