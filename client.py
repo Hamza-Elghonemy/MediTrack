@@ -13,7 +13,6 @@ import uuid # unique id for the users created
 import os
 import random
 import time
-from app import  search_Patient,filterPatients
 import threading
 import base64
 
@@ -289,7 +288,6 @@ class MainWindow(QMainWindow):
             msg.setWindowTitle("Warning")
             msg.exec_()
             return
-        self.current_patient = search_Patient(username, password)
         self.show_current()
         
     def Show_current(self):
