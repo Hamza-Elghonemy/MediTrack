@@ -93,6 +93,12 @@ To set up the project, follow these steps:
    - Filter data by date range or vital sign type as needed.
 
 
+## Contributors
+
+- **Contributor 1** - [ahmed taha](https://github.com/tahaaa22)
+- **Contributor 2** - [Hamza Elghonemy](https://github.com/Hamza-Elghonemy)
+
+
 ## Contributing
 
 If you wish to contribute to this project, please follow these steps:
